@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:latest
+        ports: ['8000:8000']    # テスト側は localhost:8000 でアクセス
 
     steps:
       # 1 Check out the code
