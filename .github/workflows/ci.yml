@@ -16,7 +16,6 @@ jobs:
       # 2 Install pnpm (handles caching for you)
       - uses: pnpm/action-setup@v4          # latest major supports pnpm 10 :contentReference[oaicite:1]{index=1}
         with:
-          version: 10                       # lock a major version
           run_install: false                # we’ll run it after we cache
 
       # 3 Set up Node 22 LTS
