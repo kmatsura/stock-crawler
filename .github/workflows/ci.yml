@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1 Check out the code
+      - uses: actions/checkout@v4           # 📝 keeps history shallow by default :contentReference[oaicite:0]{index=0}
+
+      # 2 Install pnpm (handles caching for you)
+      - uses: pnpm/action-setup@v4          # latest major supports pnpm 10 :contentReference[oaicite:1]{index=1}
+        with:
+          version: 10                       # lock a major version
+          run_install: false                # we’ll run it after we cache
+
+      # 3 Set up Node 22 LTS
+      - uses: actions/setup-node@v4         # supports Node 22 since Apr 2024 :contentReference[oaicite:2]{index=2}
+        with:
+          node-version: '22'
+          cache: 'pnpm'                     # built‑in cache for ~/.pnpm-store
+
+      # 4 Install dependencies (once per workspace)
+      - name: Install deps
+        run: pnpm install --frozen-lockfile --strict-peer-dependencies
+
+      # 5 Run quality gates
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit & e2e tests
+        run: pnpm test
+
+      # 6 Build all workspaces
+      - name: Build
+        run: pnpm build
