@@ -20,7 +20,7 @@ describe('LoggerService', () => {
         LoggerService,
         {
           provide: WINSTON_MODULE_NEST_PROVIDER,
-          useValue: mockLogger,  // ここでモックを注入
+          useValue: mockLogger,
         },
       ],
     }).compile();
