@@ -20,3 +20,13 @@ pnpm dev
 
 The backend will be available on http://localhost:3000 and the frontend on http://localhost:5173.
 Stop DynamoDB with `pnpm db:stop` when finished.
+
+## サンプルユーザー作成
+
+バックエンド起動後、以下のコマンドでログイン用のテストユーザーを登録できます。
+
+```bash
+curl -X POST http://localhost:3000/users \
+  -H "Content-Type: application/json" \
+  -d '{"email":"sample@example.com","password":"password"}'
+```
