@@ -42,6 +42,11 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handlePreviewLogin = () => {
+    setToken('preview-token');
+    navigate('/app/watchlist');
+  };
+
   return (
     <div className="max-w-md mx-auto mt-20 p-6 shadow-lg rounded-lg">
       <Toaster position="top-center" reverseOrder={false} />
@@ -73,6 +78,13 @@ export const LoginPage: React.FC = () => {
           {isSubmitting ? '送信中…' : 'ログイン'}
         </button>
       </form>
+      <button
+        type="button"
+        onClick={handlePreviewLogin}
+        className="mt-4 w-full p-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+      >
+        プレビュー用にログイン
+      </button>
     </div>
   );
 };
