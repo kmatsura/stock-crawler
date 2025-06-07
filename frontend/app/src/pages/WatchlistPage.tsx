@@ -9,7 +9,7 @@ import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../store/auth';
 import toast from 'react-hot-toast';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 interface Watch {
   uid: string;
