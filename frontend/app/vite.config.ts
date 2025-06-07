@@ -23,5 +23,6 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     plugins: [react()],
+    envPrefix: ['NEXT_PUBLIC_'], // preview-only
   };
 });

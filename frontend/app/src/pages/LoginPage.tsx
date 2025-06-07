@@ -1,78 +1,52 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginInput } from '../schemas/login.schema';
-import { useAuth } from '../store/auth';
-import toast, { Toaster } from 'react-hot-toast';
+'use client';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { RealLoginForm } from './RealLoginForm';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const setToken = useAuth((s) => s.setToken);
+  const isPreview = import.meta.env.NEXT_PUBLIC_ENV === 'preview'; // preview-only
 
-  // react-hook-form + zod の組み合わせ
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-  });
-
-  const onSubmit = async (data: LoginInput) => {
-    try {
-      const res = await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error(`ステータス ${res.status}`);
-      }
-      const { access_token } = await res.json();
-      setToken(access_token);           // Zustand + localStorage に保存
-      toast.success('ログイン成功！');   // 成功トースト
-      navigate('/app/watchlist');       // 遷移先（例）
-    } catch (err) {
-      console.error(err);
-      toast.error('ログインに失敗しました');
-    }
+  // preview-only: mock login handler
+  const handlePreviewLogin = () => {
+    const payload = {
+      sub: 'preview-user',
+      name: 'Preview User',
+      role: 'admin',
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+    };
+    const base64url = (obj: unknown) =>
+      btoa(JSON.stringify(obj))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    const mockJwt = `${base64url({ alg: 'none', typ: 'JWT' })}.${base64url(payload)}.`;
+    localStorage.setItem('token', mockJwt);
+    navigate('/app/watchlist');
   };
 
+  useEffect(() => {
+    if (localStorage.getItem('token')) navigate('/app/watchlist');
+  }, [navigate]);
+
   return (
-    <div className="max-w-md mx-auto mt-20 p-6 shadow-lg rounded-lg">
+    <div className="flex flex-col gap-6 max-w-md mx-auto py-16">
       <Toaster position="top-center" reverseOrder={false} />
-      <h2 className="text-2xl mb-4 text-center">ログイン</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block mb-1">Email</label>
-          <input
-            type="email"
-            {...register('email')}
-            className="w-full p-2 border rounded"
-          />
-          {errors.email && <p className="text-red-600">{errors.email.message}</p>}
-        </div>
-        <div>
-          <label className="block mb-1">Password</label>
-          <input
-            type="password"
-            {...register('password')}
-            className="w-full p-2 border rounded"
-          />
-          {errors.password && <p className="text-red-600">{errors.password.message}</p>}
-        </div>
+      {isPreview && (
         <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={handlePreviewLogin}
+          className="rounded-lg border px-4 py-2 text-sm hover:bg-gray-100"
         >
-          {isSubmitting ? '送信中…' : 'ログイン'}
+          🔑 プレビュー用にログイン
         </button>
-      </form>
+      )}
+      {!isPreview && (
+        <>
+          <h2 className="text-2xl mb-4 text-center">ログイン</h2>
+          <RealLoginForm />
+        </>
+      )}
     </div>
   );
 };
