@@ -8,16 +8,18 @@ export class YahooSource implements IPriceSource {
 
   private dispatcher = proxy ? new ProxyAgent(proxy) : undefined;
 
-  async getClose(code: number, date: Date): Promise<number> {
+  async getClose(code: number): Promise<number> {
     const symbol = `${code}.T`;
-    const ts = Math.floor(date.getTime() / 1000);
+    // const day = 86400;
+    // const ts = Math.floor(date.getTime() / 1000);
     const url =
       `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}` +
-      `?period1=${ts}&period2=${ts}&interval=1d`;
+      `?range=1d&interval=1d`;
     const res = await undiciFetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
       dispatcher: this.dispatcher,
     });
+    console.log(res);
     if (!res.ok) {
       throw new Error(`Yahoo request failed: ${res.status}`);
     }
