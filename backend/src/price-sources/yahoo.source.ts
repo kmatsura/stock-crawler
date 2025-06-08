@@ -3,23 +3,68 @@ import { IPriceSource } from './IPriceSource';
 export class YahooSource implements IPriceSource {
   readonly name = 'yahoo';
 
+  private async refreshAuth(): Promise<void> {
+    const cookieRes = await fetch('https://fc.yahoo.com');
+    const setCookie = cookieRes.headers.get('set-cookie') ?? '';
+    const cookie = setCookie.split(';')[0];
+    const crumbRes = await fetch(
+      'https://query1.finance.yahoo.com/v1/test/getcrumb',
+      {
+        headers: { Cookie: cookie },
+      },
+    );
+    if (!crumbRes.ok) {
+      throw new Error(`Yahoo crumb request failed: ${crumbRes.status}`);
+    }
+    const crumb = (await crumbRes.text()).trim();
+    process.env.YF_COOKIE = cookie;
+    process.env.YF_CRUMB = crumb;
+  }
+
+  private buildUrl(symbol: string, period: number): string {
+    let url =
+      `https://query1.finance.yahoo.com/v7/finance/download/${symbol}?period1=${period}&period2=${period}` +
+      '&interval=1d&events=history&includeAdjustedClose=true';
+    const crumb = process.env.YF_CRUMB;
+    if (crumb) {
+      url += `&crumb=${encodeURIComponent(crumb)}`;
+    }
+    return url;
+  }
+
+  private async download(
+    symbol: string,
+    period: number,
+    headers: Record<string, string>,
+  ): Promise<string> {
+    let url = this.buildUrl(symbol, period);
+    let res = await fetch(url, { headers });
+    if (!res.ok && (res.status === 401 || res.status === 403)) {
+      await this.refreshAuth();
+      headers = {};
+      if (process.env.YF_COOKIE) {
+        headers['Cookie'] = process.env.YF_COOKIE;
+      }
+      url = this.buildUrl(symbol, period);
+      res = await fetch(url, { headers });
+    }
+    if (!res.ok) {
+      throw new Error(`Yahoo request failed: ${res.status}`);
+    }
+    return res.text();
+  }
+
   async getClose(code: number, date: Date): Promise<number> {
     const symbol = `${code}.T`;
     const period = Math.floor(date.getTime() / 1000);
-    const crumb = process.env.YF_CRUMB;
-    let url = `https://query1.finance.yahoo.com/v7/finance/download/${symbol}?period1=${period}&period2=${period}&interval=1d&events=history&includeAdjustedClose=true`;
-    if (crumb) {
-      url += `&crumb=${encodeURIComponent(crumb)}`;
+    if (!process.env.YF_COOKIE || !process.env.YF_CRUMB) {
+      await this.refreshAuth();
     }
     const headers: Record<string, string> = {};
     if (process.env.YF_COOKIE) {
       headers['Cookie'] = process.env.YF_COOKIE;
     }
-    const res = await fetch(url, { headers });
-    if (!res.ok) {
-      throw new Error(`Yahoo request failed: ${res.status}`);
-    }
-    const text = await res.text();
+    const text = await this.download(symbol, period, headers);
     const lines = text.trim().split('\n');
     if (lines.length < 2) {
       throw new Error('Yahoo response missing data');
