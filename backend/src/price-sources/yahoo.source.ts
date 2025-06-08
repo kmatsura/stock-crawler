@@ -19,7 +19,6 @@ export class YahooSource implements IPriceSource {
       headers: { 'User-Agent': 'Mozilla/5.0' },
       dispatcher: this.dispatcher,
     });
-    console.log(res);
     if (!res.ok) {
       throw new Error(`Yahoo request failed: ${res.status}`);
     }
