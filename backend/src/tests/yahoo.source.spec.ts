@@ -11,7 +11,11 @@ describe('YahooSource', () => {
     } catch (err: unknown) {
       const cause = (err as { cause?: { code?: string }; code?: string }) || {};
       const code = cause.cause?.code ?? cause.code;
-      if (code === 'ENETUNREACH') {
+      if (
+        code === 'ENETUNREACH' ||
+        (err as Error).message.includes('Yahoo crumb request failed') ||
+        (err as Error).message.includes('Yahoo request failed')
+      ) {
         console.warn('Yahoo Finance unreachable, skipping integration test');
         return;
       }

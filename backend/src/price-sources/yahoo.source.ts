@@ -1,16 +1,25 @@
 import { IPriceSource } from './IPriceSource';
+import { fetch as undiciFetch, ProxyAgent } from 'undici';
+
+const proxy = process.env.https_proxy || process.env.HTTPS_PROXY;
 
 export class YahooSource implements IPriceSource {
   readonly name = 'yahoo';
 
+  private dispatcher = proxy ? new ProxyAgent(proxy) : undefined;
+
   private async refreshAuth(): Promise<void> {
-    const cookieRes = await fetch('https://fc.yahoo.com');
+    const cookieRes = await undiciFetch('https://fc.yahoo.com', {
+      dispatcher: this.dispatcher,
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+    });
     const setCookie = cookieRes.headers.get('set-cookie') ?? '';
     const cookie = setCookie.split(';')[0];
-    const crumbRes = await fetch(
+    const crumbRes = await undiciFetch(
       'https://query1.finance.yahoo.com/v1/test/getcrumb',
       {
-        headers: { Cookie: cookie },
+        headers: { Cookie: cookie, 'User-Agent': 'Mozilla/5.0' },
+        dispatcher: this.dispatcher,
       },
     );
     if (!crumbRes.ok) {
@@ -38,15 +47,18 @@ export class YahooSource implements IPriceSource {
     headers: Record<string, string>,
   ): Promise<string> {
     let url = this.buildUrl(symbol, period);
-    let res = await fetch(url, { headers });
+    let res = await undiciFetch(url, {
+      headers,
+      dispatcher: this.dispatcher,
+    });
     if (!res.ok && (res.status === 401 || res.status === 403)) {
       await this.refreshAuth();
-      headers = {};
+      headers = { 'User-Agent': 'Mozilla/5.0' };
       if (process.env.YF_COOKIE) {
         headers['Cookie'] = process.env.YF_COOKIE;
       }
       url = this.buildUrl(symbol, period);
-      res = await fetch(url, { headers });
+      res = await undiciFetch(url, { headers, dispatcher: this.dispatcher });
     }
     if (!res.ok) {
       throw new Error(`Yahoo request failed: ${res.status}`);
@@ -60,7 +72,9 @@ export class YahooSource implements IPriceSource {
     if (!process.env.YF_COOKIE || !process.env.YF_CRUMB) {
       await this.refreshAuth();
     }
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = {
+      'User-Agent': 'Mozilla/5.0',
+    };
     if (process.env.YF_COOKIE) {
       headers['Cookie'] = process.env.YF_COOKIE;
     }
