@@ -30,6 +30,9 @@ store the closing price of a TSE code using the CLI:
 pnpm --filter backend run crawl 7203
 ```
 
+When running locally, set `DYNAMO_ENDPOINT=http://localhost:8000` in
+`backend/.env` so the CLI writes to DynamoDB Local.
+
 ## サンプルユーザー作成
 
 バックエンド起動後、以下のコマンドでログイン用のテストユーザーを登録できます。
