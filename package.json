@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "pnpm -r run lint",
-    "test": "pnpm -r test",
+    "test": "pnpm -r test && node scripts/check-dev.js",
     "build": "pnpm -r build",
     "dev": "pnpm -r dev",
     "fmt": "pnpm exec prettier --write .",
