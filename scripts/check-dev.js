@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -15,31 +15,79 @@ function parseEnv(file) {
   return env;
 }
 
-function runWithTimeout(cmd, env, timeoutMs) {
+function runAndCheck(cmd, env, pattern, timeoutMs) {
+  return new Promise((resolve) => {
+    const child = spawn(cmd, {
+      shell: true,
+      env: { ...process.env, ...env },
+      detached: true,
+    });
+
+    let output = '';
+
+    const kill = () => {
+      try {
+        process.kill(-child.pid, 'SIGKILL');
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const timer = setTimeout(() => {
+      kill();
+      resolve(false);
+    }, timeoutMs);
+
+    child.stdout.on('data', (d) => {
+      output += d.toString();
+      if (pattern.test(output)) {
+        clearTimeout(timer);
+        kill();
+        resolve(true);
+      }
+    });
+
+    child.stderr.on('data', (d) => {
+      output += d.toString();
+    });
+
+    child.on('exit', () => {
+      clearTimeout(timer);
+      resolve(pattern.test(output));
+    });
+  });
+}
+
+async function checkBackend() {
+  const env = parseEnv(path.join(__dirname, '../backend/.env.example'));
+  const ok = await runAndCheck(
+    'pnpm --filter ./backend run start:dev',
+    env,
+    /Nest application successfully started/,
+    15000,
+  );
+  if (!ok) throw new Error('backend dev failed');
+}
+
+async function checkFrontend() {
+  const ok = await runAndCheck(
+    'pnpm --filter ./frontend/app run dev',
+    {},
+    /Local:/,
+    15000,
+  );
+  if (!ok) throw new Error('frontend dev failed');
+}
+
+async function main() {
   try {
-    return execSync(`timeout ${timeoutMs/1000}s bash -c '${cmd}'`, { env: { ...process.env, ...env }, encoding: 'utf8', stdio: 'pipe' });
+    await checkBackend();
+    await checkFrontend();
+    console.log('dev servers started successfully');
   } catch (err) {
-    // timeout exits with non-zero; still return captured output
-    return (err.stdout || '') + (err.stderr || '');
+    console.error(err.message || err);
+    process.exit(1);
   }
 }
 
-function checkBackend() {
-  const env = parseEnv(path.join(__dirname, '../backend/.env.example'));
-  const out = runWithTimeout('pnpm --filter ./backend run start:dev', env, 15000);
-  if (!/Nest application successfully started/.test(out)) throw new Error('backend dev failed');
-}
-
-function checkFrontend() {
-  const out = runWithTimeout('pnpm --filter ./frontend/app run dev', {}, 15000);
-  if (!/Local:/.test(out)) throw new Error('frontend dev failed');
-}
-
-try {
-  checkBackend();
-  checkFrontend();
-  console.log('dev servers started successfully');
-} catch (err) {
-  console.error(err.message || err);
-  process.exit(1);
-}
+main();
