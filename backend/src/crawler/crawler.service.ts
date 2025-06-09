@@ -11,7 +11,7 @@ export class CrawlerService {
     let price: number | undefined;
     for (const src of this.sources) {
       try {
-        price = await src.getClose(code, date);
+        price = await src.getClose(code);
         break;
       } catch {
         // try next source

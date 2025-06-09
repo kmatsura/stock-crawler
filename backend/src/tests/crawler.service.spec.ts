@@ -13,7 +13,7 @@ describe('CrawlerService', () => {
     const svc = new CrawlerService([yahoo], repo as PriceRepository);
     const date = new Date('2023-01-01T00:00:00Z');
     await svc.fetchAndSave(7203, date);
-    expect(yahooGetClose).toHaveBeenCalled();
+    expect(yahooGetClose).toHaveBeenCalledWith(7203);
     expect(repo.put).toHaveBeenCalledWith(
       expect.objectContaining({ price: 2915 }),
     );

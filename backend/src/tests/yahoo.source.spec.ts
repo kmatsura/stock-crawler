@@ -3,9 +3,8 @@ import { YahooSource } from '../price-sources/yahoo.source';
 describe('YahooSource', () => {
   it('retrieves close price from Yahoo Finance', async () => {
     const src = new YahooSource();
-    const date = new Date('2023-01-04T00:00:00Z');
     try {
-      const price = await src.getClose(7203, date);
+      const price = await src.getClose(7203);
       expect(typeof price).toBe('number');
       expect(price).toBeGreaterThan(0);
     } catch (err: unknown) {
