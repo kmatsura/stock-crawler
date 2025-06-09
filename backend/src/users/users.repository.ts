@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional, Inject } from '@nestjs/common';
 import { User } from './users.entity';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import type { DynamoDBClientConfig } from '@aws-sdk/client-dynamodb';
@@ -13,7 +13,11 @@ export class UsersRepository {
   private readonly client: DynamoDBDocumentClient;
   private readonly table = process.env.DYNAMO_TABLE ?? 'Stocks';
 
-  constructor(client?: DynamoDBDocumentClient) {
+  constructor(
+    @Optional()
+    @Inject(DynamoDBDocumentClient)
+    client?: DynamoDBDocumentClient,
+  ) {
     if (client) {
       this.client = client;
       return;
