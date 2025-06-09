@@ -28,6 +28,7 @@ export class CrawlerService {
       session: 'CLOSE',
       tsISO: date.toISOString(),
       price,
+      isLatest: true,
     };
     await this.repo.put(item);
     return item;

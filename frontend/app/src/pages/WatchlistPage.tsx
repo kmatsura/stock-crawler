@@ -1,26 +1,28 @@
-import React, { useState } from 'react';
-import { useAuth } from '../store/auth';
-import { jwtDecode } from 'jwt-decode';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '../store/auth';
+import React, { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
+import toast from 'react-hot-toast';
 
 interface Watch {
   uid: string;
   code: string;
   createdAt: string;
+  latestPrice?: number;
+  yieldPercent?: number;
 }
 
 export const WatchlistPage: React.FC = () => {
   const { clearToken, token } = useAuth();
   const queryClient = useQueryClient();
-  const uid = token ? (jwtDecode<{ sub: string }>(token).sub) : '';
+  const uid = token ? jwtDecode<{ sub: string }>(token).sub : '';
 
   const fetchWatches = async (): Promise<Watch[]> => {
     const res = await fetch(`/users/${uid}/watches`, {
@@ -34,6 +36,7 @@ export const WatchlistPage: React.FC = () => {
     queryKey: ['watches', uid],
     queryFn: fetchWatches,
     enabled: !!uid,
+    refetchInterval: 30000,
   });
 
   const addMutation = useMutation({
@@ -63,7 +66,8 @@ export const WatchlistPage: React.FC = () => {
     onError: (_e, _c, ctx) => {
       if (ctx) queryClient.setQueryData(['watches', uid], ctx.prev);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['watches', uid] }),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: ['watches', uid] }),
   });
 
   const removeMutation = useMutation({
@@ -89,7 +93,8 @@ export const WatchlistPage: React.FC = () => {
     onError: (_e, _c, ctx) => {
       if (ctx) queryClient.setQueryData(['watches', uid], ctx.prev);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['watches', uid] }),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: ['watches', uid] }),
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -105,6 +110,20 @@ export const WatchlistPage: React.FC = () => {
   const columns: ColumnDef<Watch>[] = [
     { accessorKey: 'code', header: '銘柄コード' },
     { accessorKey: 'createdAt', header: '登録日' },
+    {
+      accessorKey: 'latestPrice',
+      header: '最新株価',
+      cell: ({ getValue }) =>
+        getValue<number | undefined>()?.toLocaleString() ?? '-',
+    },
+    {
+      accessorKey: 'yieldPercent',
+      header: '利回り%',
+      cell: ({ getValue }) => {
+        const v = getValue<number | undefined>();
+        return v !== undefined ? v.toFixed(2) : '-';
+      },
+    },
     {
       id: 'actions',
       cell: ({ row }) => (

@@ -4,8 +4,9 @@
 
 ```
 1. pnpm install
-2. pnpm db:start   # DynamoDB Local
-3. pnpm lint && pnpm test && pnpm dev
+2. pnpm db:start   # DynamoDB Local (creates ./dynamo_data)
+3. pnpm db:seed    # create the Stocks table
+4. pnpm lint && pnpm test && pnpm dev
 ```
 
 ## Run locally
@@ -15,8 +16,13 @@ Start the local DynamoDB and launch both servers:
 ```bash
 pnpm install
 pnpm db:start
+pnpm db:seed    # create the Stocks table
 pnpm dev
 ```
+
+If the DynamoDB container fails with an SQLite error, make sure the
+`dynamo_data` folder exists and is writable (created automatically by
+`db:start`). You can run `chmod 777 dynamo_data` to fix permissions.
 
 The backend will be available on http://localhost:3000 and the frontend on http://localhost:5173.
 Stop DynamoDB with `pnpm db:stop` when finished.

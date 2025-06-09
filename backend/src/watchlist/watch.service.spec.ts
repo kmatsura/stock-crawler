@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WatchService } from './watch.service';
 import { WatchRepository } from './watch.repository';
+import { PriceRepository } from '../infra/repositories/price.repository';
 
 describe('WatchService', () => {
   let service: WatchService;
   let repo: Partial<WatchRepository>;
+  let priceRepo: Partial<PriceRepository>;
 
   beforeEach(async () => {
     repo = {
@@ -12,18 +14,40 @@ describe('WatchService', () => {
       save: jest.fn(),
       remove: jest.fn(),
     };
+    priceRepo = {
+      findLatestPriceByCode: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [WatchService, { provide: WatchRepository, useValue: repo }],
+      providers: [
+        WatchService,
+        { provide: WatchRepository, useValue: repo },
+        { provide: PriceRepository, useValue: priceRepo },
+      ],
     }).compile();
 
     service = module.get<WatchService>(WatchService);
   });
 
-  it('findAll delegates to repository', async () => {
-    (repo.findAll as jest.Mock).mockResolvedValue(['x']);
-    await expect(service.findAll('u1')).resolves.toEqual(['x']);
+  it('findAll merges latest price', async () => {
+    (repo.findAll as jest.Mock).mockResolvedValue([
+      { uid: 'u1', code: '7203', createdAt: 'd' },
+    ]);
+    (priceRepo.findLatestPriceByCode as jest.Mock).mockResolvedValue({
+      price: 1000,
+      tsISO: 'd2',
+    });
+    await expect(service.findAll('u1')).resolves.toEqual([
+      {
+        uid: 'u1',
+        code: '7203',
+        createdAt: 'd',
+        latestPrice: 1000,
+        yieldPercent: 0,
+      },
+    ]);
     expect(repo.findAll).toHaveBeenCalledWith('u1');
+    expect(priceRepo.findLatestPriceByCode).toHaveBeenCalledWith(7203);
   });
 
   it('create builds watch and saves', async () => {
