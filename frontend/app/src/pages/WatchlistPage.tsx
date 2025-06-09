@@ -99,6 +99,21 @@ export const WatchlistPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['watches', uid] }),
   });
 
+  const refreshMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/users/${uid}/watches/refresh`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      return (await res.json()) as Watch[];
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['watches', uid], data);
+      toast.success('価格を更新しました');
+    },
+  });
+
   const [modalOpen, setModalOpen] = useState(false);
   const {
     register,
@@ -159,6 +174,12 @@ export const WatchlistPage: React.FC = () => {
           className="px-3 py-1 bg-blue-500 text-white rounded"
         >
           + Add
+        </button>
+        <button
+          onClick={() => refreshMutation.mutate()}
+          className="px-3 py-1 bg-green-500 text-white rounded"
+        >
+          価格取得
         </button>
         <button
           onClick={clearToken}

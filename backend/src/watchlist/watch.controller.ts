@@ -25,6 +25,11 @@ export class WatchController {
     return this.service.create(uid, body.code);
   }
 
+  @Post('refresh')
+  refresh(@Param('uid') uid: string) {
+    return this.service.refreshPrices(uid);
+  }
+
   @Delete()
   remove(@Param('uid') uid: string, @Body() body: { code: string }) {
     return this.service.remove(uid, body.code);
