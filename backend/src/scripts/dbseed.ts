@@ -7,10 +7,10 @@ import type {
 const table = process.env.DYNAMO_TABLE ?? 'Stocks';
 
 const config: DynamoDBClientConfig = {};
+config.region = process.env.AWS_REGION ?? 'local';
+config.credentials = { accessKeyId: 'dummy', secretAccessKey: 'dummy' };
 if (process.env.DYNAMO_ENDPOINT) {
   config.endpoint = process.env.DYNAMO_ENDPOINT;
-  config.region = process.env.AWS_REGION ?? 'local';
-  config.credentials = { accessKeyId: 'dummy', secretAccessKey: 'dummy' };
 }
 
 const client = new DynamoDBClient(config);
