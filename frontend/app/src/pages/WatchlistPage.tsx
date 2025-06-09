@@ -6,6 +6,8 @@ import {
 } from '@tanstack/react-table';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { watchSchema, WatchInput } from '../schemas/watch.schema';
 import { useAuth } from '../store/auth';
 import React, { useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
@@ -98,7 +100,12 @@ export const WatchlistPage: React.FC = () => {
   });
 
   const [modalOpen, setModalOpen] = useState(false);
-  const { register, handleSubmit, reset } = useForm<{ code: string }>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<WatchInput>({ resolver: zodResolver(watchSchema) });
 
   const onAdd = handleSubmit(async ({ code }) => {
     await addMutation.mutateAsync(code);
@@ -192,6 +199,9 @@ export const WatchlistPage: React.FC = () => {
             placeholder="Code"
             {...register('code')}
           />
+          {errors.code && (
+            <p className="text-red-600 text-sm">{errors.code.message}</p>
+          )}
           <div className="flex gap-2">
             <button
               type="submit"
