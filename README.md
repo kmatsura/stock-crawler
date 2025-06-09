@@ -18,8 +18,9 @@ pnpm db:start
 pnpm dev
 ```
 
-If the DynamoDB container fails with an SQLite error, ensure the `dynamo_data`
-folder exists and is writable (it is created automatically by `db:start`).
+If the DynamoDB container fails with an SQLite error, make sure the
+`dynamo_data` folder exists and is writable (created automatically by
+`db:start`). You can run `chmod 777 dynamo_data` to fix permissions.
 
 The backend will be available on http://localhost:3000 and the frontend on http://localhost:5173.
 Stop DynamoDB with `pnpm db:stop` when finished.

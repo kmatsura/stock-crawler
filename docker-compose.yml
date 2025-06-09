@@ -1,6 +1,7 @@
 services:
   dynamodb:
     image: amazon/dynamodb-local:latest     # 公式イメージ【turn0search1】
+    user: root
     container_name: dynamodb-local
     ports:
       - "8000:8000"                         # ホスト 8000 → コンテナ 8000
