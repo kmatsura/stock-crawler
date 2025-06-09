@@ -48,3 +48,12 @@ curl -X POST http://localhost:3000/users \
   -H "Content-Type: application/json" \
   -d '{"email":"sample@example.com","password":"password"}'
 ```
+
+## Deploy to AWS
+
+To deploy the development stack, run:
+
+```bash
+sam build && sam deploy --stack-name stock-crawler-dev --capabilities CAPABILITY_IAM
+```
+

@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Dev stack for Stock Crawler (HTTP API + Lambda + DynamoDB)
+
+Resources:
+  ApiGateway:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Name: StockCrawlerDevApi
+      CorsConfiguration: "*"
+      Auth:
+        ApiKeyRequired: true
+
+  BackendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: BackendFunction
+      CodeUri: dist/
+      Handler: main.handler
+      Runtime: nodejs20.x
+      MemorySize: 512
+      Timeout: 30
+      Events:
+        Proxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ApiGateway
+            Path: /v1/{proxy+}
+            Method: ANY
+
+  StocksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: StocksTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: isLatest
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1_LatestClose
+          KeySchema:
+            - AttributeName: isLatest
+              KeyType: HASH
+            - AttributeName: SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+Outputs:
+  ApiUrl:
+    Description: "Dev API endpoint"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/v1"
+    Export:
+      Name: StockCrawlerDevApiUrl

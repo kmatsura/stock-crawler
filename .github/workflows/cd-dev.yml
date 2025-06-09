@@ -1,0 +1,35 @@
+name: CD – Dev
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v3
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: AWS 資格情報設定
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+      - name: SAM CLI インストール
+        run: |
+          pip install aws-sam-cli
+      - name: ビルド & デプロイ
+        run: |
+          sam build
+          sam deploy --stack-name stock-crawler-dev --capabilities CAPABILITY_IAM
+      - name: ヘルスチェック
+        run: |
+          ENDPOINT=$(aws cloudformation describe-stacks --stack-name stock-crawler-dev \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
+          curl --fail "${ENDPOINT}/health"
