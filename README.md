@@ -21,6 +21,18 @@ pnpm dev
 The backend will be available on http://localhost:3000 and the frontend on http://localhost:5173.
 Stop DynamoDB with `pnpm db:stop` when finished.
 
+## Price Crawler CLI
+
+After setting up `.env` in `backend/` (see `.env.example`), you can fetch and
+store the closing price of a TSE code using the CLI:
+
+```bash
+pnpm --filter backend run crawl 7203
+```
+
+When running locally, set `DYNAMO_ENDPOINT=http://localhost:8000` in
+`backend/.env` so the CLI writes to DynamoDB Local.
+
 ## サンプルユーザー作成
 
 バックエンド起動後、以下のコマンドでログイン用のテストユーザーを登録できます。
