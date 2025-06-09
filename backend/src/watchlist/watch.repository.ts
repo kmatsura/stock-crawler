@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import { Watch } from './watch.entity';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import type { DynamoDBClientConfig } from '@aws-sdk/client-dynamodb';
@@ -9,7 +8,6 @@ import {
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-@Injectable()
 export class WatchRepository {
   private readonly client: DynamoDBDocumentClient;
   private readonly table = process.env.DYNAMO_TABLE ?? 'Stocks';
