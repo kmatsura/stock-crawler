@@ -8,7 +8,7 @@ services:
               "-sharedDb",                  # 1 つの DB ファイルを共有【turn0search2】
               "-dbPath", "/home/dynamodblocal/data"]
     volumes:
-      - dynamo_data:/home/dynamodblocal/data  # データ永続化【turn0search7】
+      - ./dynamo_data:/home/dynamodblocal/data  # データ永続化
 
   # 任意：ブラウザ UI が欲しい場合
   admin:
@@ -20,5 +20,3 @@ services:
     depends_on:
       - dynamodb
 
-volumes:
-  dynamo_data:

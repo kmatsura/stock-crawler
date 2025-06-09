@@ -4,7 +4,7 @@
 
 ```
 1. pnpm install
-2. pnpm db:start   # DynamoDB Local
+2. pnpm db:start   # DynamoDB Local (creates ./dynamo_data)
 3. pnpm lint && pnpm test && pnpm dev
 ```
 
@@ -17,6 +17,9 @@ pnpm install
 pnpm db:start
 pnpm dev
 ```
+
+If the DynamoDB container fails with an SQLite error, ensure the `dynamo_data`
+folder exists and is writable (it is created automatically by `db:start`).
 
 The backend will be available on http://localhost:3000 and the frontend on http://localhost:5173.
 Stop DynamoDB with `pnpm db:stop` when finished.

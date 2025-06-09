@@ -10,9 +10,9 @@
     "build": "pnpm -r build",
     "dev": "pnpm -r dev",
     "fmt": "pnpm exec prettier --write .",
-    "db:start": "docker compose up -d dynamodb admin",
+    "db:start": "mkdir -p dynamo_data && docker compose up -d dynamodb admin",
     "db:stop": "docker compose down",
-    "db:reset": "docker compose down --volumes && docker compose up -d dynamodb"
+    "db:reset": "rm -rf dynamo_data && docker compose down && docker compose up -d dynamodb"
   },
   "keywords": [],
   "author": "",
