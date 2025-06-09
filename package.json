@@ -12,7 +12,8 @@
     "fmt": "pnpm exec prettier --write .",
     "db:start": "mkdir -p dynamo_data && chmod 777 dynamo_data && docker compose up -d dynamodb admin",
     "db:stop": "docker compose down",
-    "db:reset": "rm -rf dynamo_data && mkdir -p dynamo_data && chmod 777 dynamo_data && docker compose down && docker compose up -d dynamodb"
+    "db:reset": "rm -rf dynamo_data && mkdir -p dynamo_data && chmod 777 dynamo_data && docker compose down && docker compose up -d dynamodb",
+    "db:seed": "pnpm --filter backend run seed"
   },
   "keywords": [],
   "author": "",

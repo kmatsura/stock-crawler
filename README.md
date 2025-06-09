@@ -5,7 +5,8 @@
 ```
 1. pnpm install
 2. pnpm db:start   # DynamoDB Local (creates ./dynamo_data)
-3. pnpm lint && pnpm test && pnpm dev
+3. pnpm db:seed    # create the Stocks table
+4. pnpm lint && pnpm test && pnpm dev
 ```
 
 ## Run locally
@@ -15,6 +16,7 @@ Start the local DynamoDB and launch both servers:
 ```bash
 pnpm install
 pnpm db:start
+pnpm db:seed    # create the Stocks table
 pnpm dev
 ```
 
