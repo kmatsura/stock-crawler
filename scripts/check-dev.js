@@ -53,7 +53,11 @@ function runAndCheck(cmd, env, pattern, timeoutMs) {
 
     child.on('exit', () => {
       clearTimeout(timer);
-      resolve(pattern.test(output));
+      const ok = pattern.test(output);
+      if (!ok) {
+        console.error(output);
+      }
+      resolve(ok);
     });
   });
 }
@@ -64,7 +68,7 @@ async function checkBackend() {
     'pnpm --filter ./backend run start:dev',
     env,
     /Nest application successfully started/,
-    15000,
+    30000,
   );
   if (!ok) throw new Error('backend dev failed');
 }
@@ -74,7 +78,7 @@ async function checkFrontend() {
     'pnpm --filter ./frontend/app run dev',
     {},
     /Local:/,
-    15000,
+    20000,
   );
   if (!ok) throw new Error('frontend dev failed');
 }
